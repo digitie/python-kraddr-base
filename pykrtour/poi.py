@@ -8,8 +8,16 @@ from typing import Any
 
 from ._convert import first_value, freeze_raw, strip_or_none
 from ._enum import StrEnum
+from .addresses import (
+    AddressCodeSet,
+    LegalDongCode,
+    RoadNameAddressCode,
+    RoadNameCode,
+    address_code_set_from_mapping,
+)
 from .coordinates import Wgs84Point, coordinate_from_mapping
 from .domains import MapFeatureType, coerce_map_feature_type
+from .locations import Address, JibunAddress, PlaceCoordinate, RoadNameAddress
 
 
 class PoiSource(StrEnum):
@@ -113,6 +121,7 @@ class PoiAddress:
     postal_code: str | None = None
     legal_dong_code: str | None = None
     road_name_code: str | None = None
+    road_name_address_code: str | None = None
     building_management_number: str | None = None
 
     @property
@@ -129,9 +138,83 @@ class PoiAddress:
             (
                 self.legal_dong_code,
                 self.road_name_code,
+                self.road_name_address_code,
                 self.building_management_number,
             )
         )
+
+    @property
+    def legal_dong(self) -> LegalDongCode | None:
+        """법정동코드 DTO를 반환합니다."""
+
+        if self.legal_dong_code is None:
+            return None
+        return LegalDongCode(code=self.legal_dong_code)
+
+    @property
+    def road_name(self) -> RoadNameCode | None:
+        """도로명코드 DTO를 반환합니다."""
+
+        if self.road_name_code is None:
+            return None
+        return RoadNameCode(code=self.road_name_code)
+
+    @property
+    def road_name_address(self) -> RoadNameAddressCode | None:
+        """도로명주소관리번호 DTO를 반환합니다."""
+
+        if self.road_name_address_code is None:
+            return None
+        return RoadNameAddressCode(code=self.road_name_address_code)
+
+    @property
+    def address_codes(self) -> AddressCodeSet:
+        """주소 연계 코드를 pydantic DTO 묶음으로 반환합니다."""
+
+        return AddressCodeSet(
+            legal_dong_code=self.legal_dong,
+            road_name_code=self.road_name,
+            road_name_address_code=self.road_name_address,
+            building_management_number=self.building_management_number,
+        )
+
+    def to_jibun_address(self) -> JibunAddress | None:
+        """지번주소 기반 DTO로 변환합니다."""
+
+        if self.lot_address is None and self.legal_dong_code is None:
+            return None
+        return JibunAddress(
+            address=self.lot_address,
+            legal_dong_code=self.legal_dong,
+            postal_code=self.postal_code,
+        )
+
+    def to_road_name_address(self) -> RoadNameAddress | None:
+        """도로명주소 기반 DTO로 변환합니다."""
+
+        if (
+            self.road_address is None
+            and self.road_name_code is None
+            and self.road_name_address_code is None
+        ):
+            return None
+        return RoadNameAddress(
+            address=self.road_address,
+            legal_dong_code=self.legal_dong,
+            road_name_code=self.road_name,
+            road_name_address_code=self.road_name_address,
+            building_management_number=self.building_management_number,
+            postal_code=self.postal_code,
+        )
+
+    def to_address(self) -> Address | None:
+        """지번주소와 도로명주소를 묶은 통합 주소 DTO로 변환합니다."""
+
+        jibun = self.to_jibun_address()
+        road_name = self.to_road_name_address()
+        if jibun is None and road_name is None:
+            return None
+        return Address(jibun=jibun, road_name=road_name, postal_code=self.postal_code)
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,10 +311,19 @@ class PoiRecord:
 
         return self.name or self.provider_id or self.dataset or str(self.source)
 
+    @property
+    def place_coordinate(self) -> PlaceCoordinate | None:
+        """좌표를 장소 기반 DTO로 반환합니다."""
+
+        if self.coordinate is None:
+            return None
+        return PlaceCoordinate.from_wgs84_point(self.coordinate)
+
 
 def address_from_mapping(row: Mapping[str, Any]) -> PoiAddress | None:
     """provider row에서 흔한 주소 필드를 찾아 `PoiAddress`로 정규화합니다."""
 
+    address_codes = address_code_set_from_mapping(row)
     address = PoiAddress(
         road_address=strip_or_none(
             first_value(
@@ -261,11 +353,16 @@ def address_from_mapping(row: Mapping[str, Any]) -> PoiAddress | None:
             )
         ),
         postal_code=strip_or_none(first_value(row, "postal_code", "zip", "zipCode", "road_zip")),
-        legal_dong_code=strip_or_none(first_value(row, "legal_dong_code", "ADM_CD")),
-        road_name_code=strip_or_none(first_value(row, "road_name_code", "RN_MGT_SN")),
-        building_management_number=strip_or_none(
-            first_value(row, "building_management_number", "BD_MGT_SN")
+        legal_dong_code=(
+            address_codes.legal_dong_code.code if address_codes.legal_dong_code else None
         ),
+        road_name_code=address_codes.road_name_code.code if address_codes.road_name_code else None,
+        road_name_address_code=(
+            address_codes.road_name_address_code.code
+            if address_codes.road_name_address_code
+            else None
+        ),
+        building_management_number=address_codes.building_management_number,
     )
     if not any(
         (
@@ -274,6 +371,7 @@ def address_from_mapping(row: Mapping[str, Any]) -> PoiAddress | None:
             address.postal_code,
             address.legal_dong_code,
             address.road_name_code,
+            address.road_name_address_code,
             address.building_management_number,
         )
     ):

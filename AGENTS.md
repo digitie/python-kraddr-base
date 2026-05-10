@@ -21,13 +21,17 @@ TripMate 하위 Python 라이브러리들이 공통으로 쓰는 POI 값 객체,
 - 이 패키지는 POI category, 지도 도메인 타입, 좌표, 주소/연락처/공급자 참조,
   공항/주유소 같은 공통 장소 타입을 제공합니다.
 - Python 지원 기준은 3.10 이상입니다.
-- 기본 런타임 의존성은 비워 둡니다. `pyproj`가 필요한 좌표 변환은 `geo` extra로 둡니다.
+- 기본 런타임 의존성은 주소 DTO 검증용 `pydantic`만 둡니다. `pyproj`가 필요한 좌표
+  변환은 `geo` extra로 둡니다.
 - 기본 테스트는 네트워크 없이 동작해야 합니다.
 
 ## 모듈 지도
 
 - `pykrtour/categories.py`: TripMate 8자리 POI category enum/dataclass/tree helper.
 - `pykrtour/domains.py`: TripMate 지도 도메인 enum/dataclass/detail schema hint.
+- `pykrtour/addresses.py`: 법정동코드, 도로명코드, 도로명주소관리번호 pydantic DTO/helper.
+- `pykrtour/locations.py`: 장소 기반 좌표, 행정구역, 지번주소, 도로명주소, 통합 주소
+  pydantic DTO/helper.
 - `pykrtour/coordinates.py`: WGS84, KATEC, AirKorea TM, KMA DFS 좌표 값 객체와 변환.
 - `pykrtour/poi.py`: provider POI 공통 enum/dataclass와 mapping 정규화 helper.
 - `pykrtour/airports.py`: 한국 공항 코드, 메타데이터, 근접 공항 helper.
@@ -36,6 +40,7 @@ TripMate 하위 Python 라이브러리들이 공통으로 쓰는 POI 값 객체,
 - `pykrtour/_enum.py`: Python 3.10 호환 문자열 enum 기반 클래스.
 - `tests/`: 네트워크 없는 단위 테스트.
 - `docs/map-domains.md`: category와 별개로 쓰는 지도 도메인 기준 문서.
+- `docs/place-base-types.md`: 모든 하위 라이브러리가 공유하는 장소 위치 DTO 기준 문서.
 
 ## 반드시 지킬 것
 
@@ -56,6 +61,13 @@ TripMate 하위 Python 라이브러리들이 공통으로 쓰는 POI 값 객체,
 
 ## 하위 라이브러리 이관 원칙
 
+- 여러 하위 라이브러리에서 반복되는 타입이나 변환 로직은 `pykrtour`로 끌어올리고,
+  하위 라이브러리는 이 패키지를 직접 import합니다.
+- 단순 위임용 wrapper, compatibility alias, mirror dataclass는 새로 만들지 않습니다. 기존
+  provider 패키지에 그런 층이 있으면 새 코드에서는 제거하고 `pykrtour` 타입을 파라미터나
+  리턴값으로 직접 사용합니다.
+- 이 원칙은 "최소 수정"보다 우선합니다. 공통 구현을 직접 쓰기 위해 공개 API 변경이
+  필요하면 문서와 테스트를 함께 갱신해 새 경계를 명확히 합니다.
 - `pykrtourpoi`의 category 정의는 `pykrtour.categories`로 옮기고, `pykrtourpoi`는
   `pykrtour`에 의존합니다. 별도 호환 wrapper를 새로 만들지 않습니다.
 - `pymois`, `pyairkorea`, `opinet`, `pykma`, `kex-openapi`, `pykrairport`의 좌표 값 객체는

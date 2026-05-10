@@ -87,6 +87,17 @@ TripMate 백엔드가 공유해야 하는 축약 기준만 담는다.
 `primary_source_record_id`, `extra`를 둔다. 공통 컬럼으로 승격하지 않은 provider별 값은
 detail table의 `extra`나 원천 `raw_payload`에 보존한다.
 
+점 위치는 `pykrtour.locations.PlaceCoordinate`를 기준 DTO로 사용한다. 이 DTO는 WGS84
+`longitude`, `latitude` 숫자 컬럼과 PostGIS용 WKT/EWKT 값을 만들 수 있지만, 지오코딩과
+리버스 지오코딩은 수행하지 않는다.
+
+주소 snapshot과 함께 코드 기반 연계가 가능한 경우 `legal_dong_code`, `road_name_code`,
+`road_name_address_code`, `building_management_number`를 보존한다. 법정동코드는
+`pykrtour.addresses.LegalDongCode`, 도로명코드는 `RoadNameCode`, 도로명주소관리번호는
+`RoadNameAddressCode`로 검증한 뒤 ORM DTO용 평면 dict로 넘길 수 있다.
+시군구코드까지만 있는 원천 row는 `pykrtour.locations.AddressRegion`으로 보존하고,
+지번/도로명 상세가 있을 때만 `JibunAddress`, `RoadNameAddress`, `Address`에 결합한다.
+
 ## 여행 일정 연결
 
 `trip_plan_items.resource_type`에서 `place`, `event`, `route`, `area`, `notice`,

@@ -15,7 +15,13 @@ from ._enum import StrEnum
 CoordinateKind: TypeAlias = Literal["latitude", "longitude"]
 
 WGS84_CRS = "EPSG:4326"
-KATEC_CRS = "EPSG:5174"
+KATEC_PROJ = (
+    "+proj=tmerc +lat_0=38 +lon_0=128 +k=0.9999 +x_0=400000 +y_0=600000 "
+    "+ellps=bessel +units=m "
+    "+towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43 +no_defs"
+)
+KATEC_CRS = KATEC_PROJ
+EPSG5174_CRS = "EPSG:5174"
 AIRKOREA_TM_CRS = "EPSG:2097"
 KMA_DFS_CRS = "KMA_DFS"
 
@@ -198,7 +204,7 @@ class ProjectedPoint:
 
 @dataclass(frozen=True, slots=True)
 class KatecPoint:
-    """KATEC/EPSG:5174 `(x, y)` 좌표."""
+    """KATEC `(x, y)` 좌표."""
 
     x: float
     y: float
@@ -226,7 +232,7 @@ class KatecPoint:
         return self.as_tuple()
 
     def to_wgs84(self) -> Wgs84Point:
-        return epsg5174_to_wgs84(self.x, self.y)
+        return katec_to_wgs84(self.x, self.y)
 
 
 @dataclass(frozen=True, slots=True)
@@ -458,18 +464,33 @@ def transform_xy(
     return float(new_x), float(new_y)
 
 
-def epsg5174_to_wgs84(x: float, y: float) -> Wgs84Point:
-    """EPSG:5174/KATEC `(x, y)`를 WGS84 `Wgs84Point(lon, lat)`로 변환합니다."""
+def katec_to_wgs84(x: float, y: float) -> Wgs84Point:
+    """KATEC `(x, y)`를 WGS84 `Wgs84Point(lon, lat)`로 변환합니다."""
 
     lon, lat = transform_xy(x, y, source_crs=KATEC_CRS, target_crs=WGS84_CRS)
     return Wgs84Point(lon, lat)
 
 
-def wgs84_to_epsg5174(lon: float, lat: float) -> KatecPoint:
-    """WGS84 `(lon, lat)`를 EPSG:5174/KATEC `(x, y)`로 변환합니다."""
+def wgs84_to_katec(lon: float, lat: float) -> KatecPoint:
+    """WGS84 `(lon, lat)`를 KATEC `(x, y)`로 변환합니다."""
 
     point = Wgs84Point(lon, lat)
     x, y = transform_xy(point.lon, point.lat, source_crs=WGS84_CRS, target_crs=KATEC_CRS)
+    return KatecPoint(x, y)
+
+
+def epsg5174_to_wgs84(x: float, y: float) -> Wgs84Point:
+    """EPSG:5174 `(x, y)`를 WGS84 `Wgs84Point(lon, lat)`로 변환합니다."""
+
+    lon, lat = transform_xy(x, y, source_crs=EPSG5174_CRS, target_crs=WGS84_CRS)
+    return Wgs84Point(lon, lat)
+
+
+def wgs84_to_epsg5174(lon: float, lat: float) -> KatecPoint:
+    """WGS84 `(lon, lat)`를 EPSG:5174 `(x, y)`로 변환합니다."""
+
+    point = Wgs84Point(lon, lat)
+    x, y = transform_xy(point.lon, point.lat, source_crs=WGS84_CRS, target_crs=EPSG5174_CRS)
     return KatecPoint(x, y)
 
 

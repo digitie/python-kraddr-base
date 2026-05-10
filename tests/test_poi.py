@@ -54,13 +54,28 @@ def test_address_from_mapping_reads_mois_and_opinet_names() -> None:
         {
             "ROAD_NM_ADDR": "서울특별시 종로구 세종대로 209",
             "LOTNO_ADDR": "서울특별시 종로구 세종로 1-91",
-            "ADM_CD": "1111011900",
+            "admCd": "1111011900",
+            "rnMgtSn": "111103005028",
+            "udrtYn": "0",
+            "buldMnnm": "209",
+            "buldSlno": "0",
         }
     )
 
     assert address is not None
     assert address.display_address == "서울특별시 종로구 세종대로 209"
     assert address.has_linkage_codes
+    assert address.legal_dong_code == "1111011900"
+    assert address.road_name_code == "111103005028"
+    assert address.road_name_address_code == "11110119300502800020900000"
+    assert address.address_codes.to_orm_dict()["road_name_code"] == "111103005028"
+    assert address.to_jibun_address() is not None
+    road_address = address.to_road_name_address()
+    assert road_address is not None
+    assert road_address.building_number_label == "209"
+    combined = address.to_address()
+    assert combined is not None
+    assert combined.sigungu_code == "11110"
 
 
 def test_airport_registry_and_nearest_airport() -> None:

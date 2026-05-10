@@ -11,8 +11,10 @@ from pykrtour import (
     coerce_wgs84_point,
     coordinate_from_mapping,
     haversine_distance_m,
+    katec_to_wgs84,
     kma_grid_to_wgs84,
     to_decimal_degrees,
+    wgs84_to_katec,
     wgs84_to_kma_grid,
 )
 
@@ -73,3 +75,15 @@ def test_haversine_distance_m() -> None:
     gimpo = Wgs84Point(126.791, 37.5583)
 
     assert haversine_distance_m(seoul, gimpo) == pytest.approx(16_500, rel=0.2)
+
+
+def test_katec_conversion_matches_opinet_samples() -> None:
+    katec = wgs84_to_katec(127.0276, 37.4979)
+
+    assert katec.x == pytest.approx(314213.3092)
+    assert katec.y == pytest.approx(544413.5797)
+
+    point = katec_to_wgs84(314871.8, 544012.0)
+
+    assert point.lon == pytest.approx(127.0350927851)
+    assert point.lat == pytest.approx(37.4943428508)
