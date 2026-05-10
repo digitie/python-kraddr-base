@@ -214,12 +214,19 @@ assert road.road_name_code is None
 
 `Address`는 `AddressRegion`, `JibunAddress`, `RoadNameAddress`를 묶는 통합 주소 DTO다.
 도로명주소와 지번주소가 모두 있으면 도로명주소를 표시용 주소로 우선하고, 상세 주소가
-없으면 `region`만 담을 수 있다.
+있으면 `detail_address`에 보존한다. 상세 주소가 없으면 자유 주소 문자열이나 `region`만
+담을 수 있다. 자유 주소 문자열에서는 행정구역
+이름만 추출하고, 법정동코드는 provider 코드나 검증된 외부 조회 결과가 있을 때만 보존한다.
 
 예시:
 
 ```python
 from pykrtour import Address, AddressRegion
+
+plain = Address.from_text("경기 용인시 수지구 풍덕천동 42-1")
+
+assert plain.display_address == "경기 용인시 수지구 풍덕천동 42-1"
+assert plain.legal_dong_code is None
 
 address = Address(region=AddressRegion.from_sigungu_code("11110"))
 
@@ -228,21 +235,24 @@ assert address.has_detail_address is False
 assert address.to_sqlalchemy_values()["road_address"] is None
 ```
 
-provider row에서 통합 주소를 만들 때는 `place_address_from_mapping()`을 쓴다.
+provider row에서 통합 주소를 만들 때는 `Address.from_mapping()`을 직접 쓴다.
 
 ```python
-from pykrtour import place_address_from_mapping
+from pykrtour import Address
 
-address = place_address_from_mapping(
+address = Address.from_mapping(
     {
         "sigungu_code": "11110",
+        "svarAddr": "경기 용인시 수지구 풍덕천동 42-1",
         "ROAD_NM_ADDR": "서울특별시 종로구 세종대로 209",
         "LOTNO_ADDR": "서울특별시 종로구 세종로 1-91",
         "admCd": "1111011900",
+        "detail_address": "정부서울청사",
     }
 )
 
 assert address.sigungu_code == "11110"
+assert address.detail_address == "정부서울청사"
 ```
 
 ## provider row 정규화

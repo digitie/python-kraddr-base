@@ -97,6 +97,7 @@ detail table의 `extra`나 원천 `raw_payload`에 보존한다.
 `RoadNameAddressCode`로 검증한 뒤 ORM DTO용 평면 dict로 넘길 수 있다.
 시군구코드까지만 있는 원천 row는 `pykrtour.locations.AddressRegion`으로 보존하고,
 지번/도로명 상세가 있을 때만 `JibunAddress`, `RoadNameAddress`, `Address`에 결합한다.
+건물명이나 상세주소처럼 주소 본문과 분리해야 하는 값은 `Address.detail_address`에 보존한다.
 
 ## 여행 일정 연결
 

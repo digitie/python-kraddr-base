@@ -12,7 +12,7 @@
 - TripMate 8자리 POI 카테고리 코드와 tree helper
 - TripMate 지도 도메인 타입(`place`, `event`, `route`, `area`, `notice`, `weather`)과
   detail schema hint
-- 장소 기반 좌표, 행정구역, 지번주소, 도로명주소, 통합 주소 DTO와 SQLAlchemy 저장 helper
+- 장소 기반 좌표, 자유 주소 문자열, 행정구역, 지번주소, 도로명주소, 통합 주소 DTO와 SQLAlchemy 저장 helper
 - 법정동코드, 도로명코드, 도로명주소관리번호 pydantic DTO와 ORM용 평면 dict helper
 - WGS84, KATEC, AirKorea TM, KMA DFS 좌표 값 객체와 변환 helper
 - provider 좌표 key의 `-99.000000` 같은 누락 sentinel 정리
@@ -70,6 +70,10 @@ assert coord.to_sqlalchemy_values(lon_field="lon", lat_field="lat") == {
 
 sigungu = SigunguCode(code="11110")
 region = AddressRegion.from_sigungu_code(sigungu, sigungu_name="종로구")
+address = Address.from_text("서울 종로구 세종로 1-91")
+assert address is not None
+assert address.display_address == "서울 종로구 세종로 1-91"
+assert address.legal_dong_code is None
 address = Address(region=region)
 assert address.to_sqlalchemy_values()["sigungu_code"] == "11110"
 
@@ -108,7 +112,7 @@ TripMate 지도 데이터는 category와 별개로 최상위 도메인 타입을
 - `JibunAddress`: 지번주소. `AddressRegion` 아래 지번 본번/부번, ORM 저장 dict 제공
 - `RoadNameAddress`: 도로명주소. 도로명코드/도로명주소관리번호 분해, 건물번호,
   도로명주소 API 파라미터, ORM 저장 dict 제공
-- `Address`: `AddressRegion`, `JibunAddress`, `RoadNameAddress`를 묶는 통합 주소 DTO
+- `Address`: 자유 주소 문자열, 상세주소, `AddressRegion`, `JibunAddress`, `RoadNameAddress`를 묶는 통합 주소 DTO
 
 주소 검색, 지오코딩, 리버스 지오코딩은 이 값 객체의 책임이 아닙니다. 해당 기능은
 `pyvworld` 같은 provider 라이브러리나 서비스 계층에서 수행합니다. 자세한 기준은

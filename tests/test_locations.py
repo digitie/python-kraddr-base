@@ -239,6 +239,7 @@ def test_address_combines_region_jibun_and_road_name() -> None:
             "admCd": "1111011900",
             "rnMgtSn": "111103005028",
             "zipNo": "03172",
+            "detail_address": "정부서울청사",
         }
     )
 
@@ -247,9 +248,44 @@ def test_address_combines_region_jibun_and_road_name() -> None:
     assert address.sigungu_code == "11110"
     assert address.legal_dong_code == "1111011900"
     assert address.display_address == "서울특별시 종로구 세종대로 209"
+    assert address.detail_address == "정부서울청사"
     assert address.has_detail_address is True
     assert address.to_sqlalchemy_values()["road_address"] == "서울특별시 종로구 세종대로 209"
     assert address.to_sqlalchemy_values()["jibun_address"] == "서울특별시 종로구 세종로 1-91"
+    assert address.to_sqlalchemy_values()["detail_address"] == "정부서울청사"
+
+
+def test_address_from_text_preserves_raw_address_without_guessing_code() -> None:
+    address = Address.from_text("경기 용인시 수지구 풍덕천동 42-1")
+
+    assert address is not None
+    assert address.address == "경기 용인시 수지구 풍덕천동 42-1"
+    assert address.display_address == "경기 용인시 수지구 풍덕천동 42-1"
+    assert address.region is not None
+    assert address.region.sido_name == "경기도"
+    assert address.region.sigungu_name == "용인시 수지구"
+    assert address.region.eup_myeon_dong_name == "풍덕천동"
+    assert address.legal_dong_code is None
+    assert address.has_detail_address is True
+
+
+def test_address_from_mapping_merges_provider_code_with_parsed_text() -> None:
+    address = Address.from_mapping(
+        {
+            "svarAddr": "경기 용인시 수지구 풍덕천동 42-1",
+            "ADM_CD": "4146510100",
+        }
+    )
+
+    assert address is not None
+    assert address.address == "경기 용인시 수지구 풍덕천동 42-1"
+    assert address.display_address == "경기 용인시 수지구 풍덕천동 42-1"
+    assert address.effective_region is not None
+    assert address.effective_region.sido_name == "경기도"
+    assert address.effective_region.sigungu_name == "용인시 수지구"
+    assert address.effective_region.eup_myeon_dong_name == "풍덕천동"
+    assert address.legal_dong_code == "4146510100"
+    assert address.sigungu_code == "41465"
 
 
 def test_address_can_hold_only_region() -> None:

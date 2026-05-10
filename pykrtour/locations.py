@@ -58,6 +58,17 @@ JIBUN_ADDRESS_KEYS: Final[tuple[str, ...]] = (
     "지번주소",
     "소재지",
 )
+ADDRESS_TEXT_KEYS: Final[tuple[str, ...]] = (
+    "address",
+    "addr",
+    "svarAddr",
+    "svar_addr",
+    "serviceAreaAddress",
+    "LCTN_WHOL_ADDR",
+    "VAN_ADR",
+    "주소",
+    "소재지",
+)
 ROAD_ADDRESS_KEYS: Final[tuple[str, ...]] = (
     "road_address",
     "roadAddress",
@@ -77,6 +88,12 @@ POSTAL_CODE_KEYS: Final[tuple[str, ...]] = (
     "zipNo",
     "road_zip",
     "우편번호",
+)
+DETAIL_ADDRESS_KEYS: Final[tuple[str, ...]] = (
+    "detail_address",
+    "detailAddress",
+    "detail",
+    "상세주소",
 )
 SIDO_NAME_KEYS: Final[tuple[str, ...]] = ("sido_name", "siNm", "sido", "시도")
 SIGUNGU_NAME_KEYS: Final[tuple[str, ...]] = (
@@ -1201,19 +1218,26 @@ class RoadNameAddress(BaseModel):
 
 
 class Address(BaseModel):
-    """지번주소와 도로명주소를 함께 담는 장소 주소 DTO.
+    """자유 주소 문자열, 지번주소, 도로명주소를 함께 담는 장소 주소 DTO.
 
-    지역 단위 데이터는 `region`만 채우고, 지번/도로명 상세가 있는 데이터는 `jibun`과
-    `road_name`에 각각 담습니다. 지오코딩 결과를 합치는 상위 모델이 아니라, 이미 확보한
-    주소 값을 ORM 경계까지 안정적으로 옮기는 공통 값 객체입니다.
+    provider가 주소를 단일 문자열로만 주면 `address`에 보존하고, 지번/도로명 상세가 있는
+    데이터는 `jibun`과 `road_name`에 각각 담습니다. 지오코딩 결과를 합치는 상위 모델이
+    아니라, 이미 확보한 주소 값을 ORM 경계까지 안정적으로 옮기는 공통 값 객체입니다.
     """
 
     model_config = _LOCATION_MODEL_CONFIG
 
+    address: str | None = None
     region: AddressRegion | None = None
     jibun: JibunAddress | None = None
     road_name: RoadNameAddress | None = None
     postal_code: str | None = None
+    detail_address: str | None = None
+
+    @field_validator("address", mode="before")
+    @classmethod
+    def _strip_address(cls, value: Any) -> str | None:
+        return strip_or_none(value)
 
     @field_validator("region", mode="before")
     @classmethod
@@ -1248,9 +1272,9 @@ class Address(BaseModel):
             return RoadNameAddress.model_validate(value)
         raise TypeError("road_name must be a RoadNameAddress or mapping")
 
-    @field_validator("postal_code", mode="before")
+    @field_validator("postal_code", "detail_address", mode="before")
     @classmethod
-    def _strip_postal_code(cls, value: Any) -> str | None:
+    def _strip_optional_text(cls, value: Any) -> str | None:
         return strip_or_none(value)
 
     def model_post_init(self, __context: Any) -> None:
@@ -1271,6 +1295,20 @@ class Address(BaseModel):
         """provider row에서 지역/지번/도로명주소를 찾아 통합 주소 DTO를 반환합니다."""
 
         region = AddressRegion.from_mapping(row)
+        raw_address = strip_or_none(first_value(row, *ADDRESS_TEXT_KEYS))
+        parsed_region = AddressRegion.from_text(raw_address)
+        if region is None:
+            region = parsed_region
+        elif parsed_region is not None:
+            region = AddressRegion(
+                sigungu_code=region.effective_sigungu_code,
+                legal_dong_code=region.legal_dong_code,
+                sido_name=region.sido_name or parsed_region.sido_name,
+                sigungu_name=region.sigungu_name or parsed_region.sigungu_name,
+                eup_myeon_dong_name=region.eup_myeon_dong_name
+                or parsed_region.eup_myeon_dong_name,
+                ri_name=region.ri_name or parsed_region.ri_name,
+            )
         code_set = address_code_set_from_mapping(row)
         jibun_has_detail = (
             strip_or_none(
@@ -1328,14 +1366,36 @@ class Address(BaseModel):
         jibun = JibunAddress.from_mapping(row) if jibun_has_detail else None
         road_name = RoadNameAddress.from_mapping(row) if road_has_detail else None
         postal_code = strip_or_none(first_value(row, *POSTAL_CODE_KEYS))
-        if region is None and jibun is None and road_name is None and postal_code is None:
+        detail_address = strip_or_none(first_value(row, *DETAIL_ADDRESS_KEYS))
+        if (
+            raw_address is None
+            and region is None
+            and jibun is None
+            and road_name is None
+            and postal_code is None
+            and detail_address is None
+        ):
             return None
         return cls(
+            address=raw_address,
             region=region,
             jibun=jibun,
             road_name=road_name,
             postal_code=postal_code,
+            detail_address=detail_address,
         )
+
+    @classmethod
+    def from_text(cls, value: Any) -> Address | None:
+        """자유 주소 문자열을 통합 주소 DTO로 보존합니다.
+
+        문자열에서 행정구역 이름은 추출하지만, 10자리 법정동코드는 추정하지 않습니다.
+        """
+
+        address = strip_or_none(value)
+        if address is None:
+            return None
+        return cls(address=address, region=AddressRegion.from_text(address))
 
     @property
     def effective_region(self) -> AddressRegion | None:
@@ -1355,6 +1415,8 @@ class Address(BaseModel):
             return self.road_name.display_address
         if self.jibun is not None and self.jibun.display_address:
             return self.jibun.display_address
+        if self.address is not None:
+            return self.address
         region = self.effective_region
         return region.administrative_label if region else None
 
@@ -1370,12 +1432,14 @@ class Address(BaseModel):
 
     @property
     def has_detail_address(self) -> bool:
-        """지번주소나 도로명주소 상세 문자열이 있는지 반환합니다."""
+        """자유 주소, 지번주소, 도로명주소 상세 문자열이 있는지 반환합니다."""
 
         return any(
             (
                 self.jibun is not None and self.jibun.display_address is not None,
                 self.road_name is not None and self.road_name.display_address is not None,
+                self.address is not None,
+                self.detail_address is not None,
             )
         )
 
@@ -1424,6 +1488,7 @@ class Address(BaseModel):
             values.update(_empty_road_name_orm_values())
         values["address"] = self.display_address
         values["postal_code"] = self.effective_postal_code
+        values["detail_address"] = self.detail_address
         return values
 
     def to_sqlalchemy_values(self) -> dict[str, str | int | bool | None]:
