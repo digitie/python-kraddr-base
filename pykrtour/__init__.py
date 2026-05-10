@@ -179,6 +179,7 @@ from .locations import (
     PlaceCoordinate,
     RoadNameAddress,
     address_region_from_mapping,
+    address_region_from_text,
     jibun_address_from_mapping,
     place_address_from_mapping,
     place_coordinate_from_mapping,
@@ -199,7 +200,7 @@ from .poi import (
     poi_from_mapping,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "AIRKOREA_TM_CRS",
@@ -313,6 +314,7 @@ __all__ = [
     "address_code_set_from_mapping",
     "address_from_mapping",
     "address_region_from_mapping",
+    "address_region_from_text",
     "airkorea_tm_to_wgs84",
     "bjd_sido_to_opinet",
     "category_label",

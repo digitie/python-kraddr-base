@@ -35,6 +35,7 @@ from .coordinates import (
     airkorea_tm_to_wgs84,
     coordinate_from_mapping,
     haversine_distance_m,
+    to_decimal_degrees,
     wgs84_to_airkorea_tm,
     wgs84_to_katec,
     wgs84_to_kma_grid,
@@ -92,6 +93,29 @@ EUP_MYEON_DONG_NAME_KEYS: Final[tuple[str, ...]] = (
     "법정동",
 )
 RI_NAME_KEYS: Final[tuple[str, ...]] = ("ri_name", "liNm", "ri", "리")
+
+_SIDO_ALIASES: Final[dict[str, str]] = {
+    "서울": "서울특별시",
+    "부산": "부산광역시",
+    "대구": "대구광역시",
+    "인천": "인천광역시",
+    "광주": "광주광역시",
+    "대전": "대전광역시",
+    "울산": "울산광역시",
+    "세종": "세종특별자치시",
+    "경기": "경기도",
+    "강원": "강원특별자치도",
+    "충북": "충청북도",
+    "충남": "충청남도",
+    "전북": "전북특별자치도",
+    "전남": "전라남도",
+    "경북": "경상북도",
+    "경남": "경상남도",
+    "제주": "제주특별자치도",
+}
+_SIDO_SUFFIXES: Final[tuple[str, ...]] = ("특별시", "광역시", "특별자치시", "특별자치도", "도")
+_SIGUNGU_SUFFIXES: Final[tuple[str, ...]] = ("시", "군", "구")
+_LOWER_REGION_SUFFIXES: Final[tuple[str, ...]] = ("읍", "면", "동", "가", "리")
 
 _LOCATION_MODEL_CONFIG: Final[ConfigDict] = ConfigDict(
     extra="forbid",
@@ -176,6 +200,15 @@ class PlaceCoordinate(BaseModel):
             lat=point.lat,
             altitude_m=first_value(row, "altitude_m", "altitude", "고도"),
             accuracy_m=first_value(row, "accuracy_m", "accuracy", "정확도"),
+        )
+
+    @classmethod
+    def from_values(cls, latitude: Any, longitude: Any) -> PlaceCoordinate:
+        """decimal 또는 DMS 유사 위경도 값으로 기준 좌표 DTO를 만듭니다."""
+
+        return cls(
+            lon=round(to_decimal_degrees(longitude, kind="longitude"), 12),
+            lat=round(to_decimal_degrees(latitude, kind="latitude"), 12),
         )
 
     @classmethod
@@ -299,6 +332,11 @@ class PlaceCoordinate(BaseModel):
         else:
             target = other
         return haversine_distance_m(self.to_wgs84_point(), target)
+
+    def distance_to_km(self, other: PlaceCoordinate | Wgs84Point | LatLon) -> float:
+        """다른 WGS84 좌표까지의 대권 거리를 킬로미터 단위로 반환합니다."""
+
+        return self.distance_to_m(other) / 1000.0
 
     def to_wkt(self) -> str:
         """PostGIS 등에 사용할 WKT Point 문자열을 반환합니다."""
@@ -431,6 +469,66 @@ class AddressRegion(BaseModel):
         ):
             return None
         return cls(sigungu_code=sigungu, legal_dong_code=legal_dong, **names)
+
+    @classmethod
+    def from_text(cls, value: Any) -> AddressRegion | None:
+        """주소 문자열에서 행정구역 이름을 추출해 지역 DTO를 반환합니다.
+
+        주소 문자열만으로는 10자리 법정동코드를 확정하지 않습니다. 코드가 필요하면
+        provider가 준 법정동코드나 VWorld 같은 외부 법정동 경계 조회 결과를 함께 쓰세요.
+        """
+
+        text = strip_or_none(value)
+        if text is None:
+            return None
+        tokens = [part for part in text.replace(",", " ").split() if part]
+        if not tokens:
+            return None
+
+        index = 0
+        sido_name: str | None = None
+        sigungu_name: str | None = None
+        eup_myeon_dong_name: str | None = None
+        ri_name: str | None = None
+
+        first = tokens[index]
+        if first in _SIDO_ALIASES:
+            sido_name = _SIDO_ALIASES[first]
+            index += 1
+        elif first.endswith(_SIDO_SUFFIXES):
+            sido_name = first
+            index += 1
+
+        sigungu_parts: list[str] = []
+        while index < len(tokens) and len(sigungu_parts) < 2:
+            token = tokens[index]
+            if not token.endswith(_SIGUNGU_SUFFIXES):
+                break
+            sigungu_parts.append(token)
+            index += 1
+            if token.endswith(("군", "구")):
+                break
+            if index >= len(tokens) or not tokens[index].endswith("구"):
+                break
+        if sigungu_parts:
+            sigungu_name = " ".join(sigungu_parts)
+
+        if index < len(tokens):
+            token = tokens[index]
+            if token.endswith(_LOWER_REGION_SUFFIXES):
+                if token.endswith("리"):
+                    ri_name = token
+                else:
+                    eup_myeon_dong_name = token
+
+        if not any((sido_name, sigungu_name, eup_myeon_dong_name, ri_name)):
+            return None
+        return cls(
+            sido_name=sido_name,
+            sigungu_name=sigungu_name,
+            eup_myeon_dong_name=eup_myeon_dong_name,
+            ri_name=ri_name,
+        )
 
     @classmethod
     def from_sigungu_code(
@@ -1347,6 +1445,12 @@ def address_region_from_mapping(row: Mapping[str, Any]) -> AddressRegion | None:
     """mapping에서 주소 행정구역 DTO를 생성합니다."""
 
     return AddressRegion.from_mapping(row)
+
+
+def address_region_from_text(value: Any) -> AddressRegion | None:
+    """주소 문자열에서 주소 행정구역 DTO를 생성합니다."""
+
+    return AddressRegion.from_text(value)
 
 
 def jibun_address_from_mapping(row: Mapping[str, Any]) -> JibunAddress | None:

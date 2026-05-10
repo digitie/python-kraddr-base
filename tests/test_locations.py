@@ -15,6 +15,7 @@ from pykrtour import (
     SigunguCode,
     Wgs84Point,
     address_region_from_mapping,
+    address_region_from_text,
     jibun_address_from_mapping,
     place_address_from_mapping,
     place_coordinate_from_mapping,
@@ -56,6 +57,7 @@ def test_place_coordinate_mapping_and_coordinate_conversions() -> None:
         PlaceCoordinate(lon=127.104165, lat=37.332651)
     )
     assert PlaceCoordinate.from_tuple((35.1587, 129.1604), order="lat_lon") == coord
+    assert PlaceCoordinate.from_values("35° 9' 31.32\" N", "129° 9' 37.44\" E") == coord
     assert PlaceCoordinate.from_wgs84_point(Wgs84Point(129.1604, 35.1587)) == coord
     assert isinstance(coord.to_katec(), KatecPoint)
     assert coord.to_kma_grid().nx > 0
@@ -72,6 +74,7 @@ def test_place_coordinate_uses_opinet_katec_projection() -> None:
 
     assert station.lon == pytest.approx(127.0350927851)
     assert station.lat == pytest.approx(37.4943428508)
+    assert station.distance_to_km(gangnam) == pytest.approx(0.77, abs=0.1)
 
 
 def test_place_coordinate_rejects_invalid_range() -> None:
@@ -135,6 +138,17 @@ def test_address_region_from_mapping_derives_sigungu_from_legal_dong() -> None:
     assert region.legal_dong_code == LegalDongCode(code="1111011900")
     assert region.has_lower_region_code is True
     assert region.eup_myeon_dong_code == "11110119"
+
+
+def test_address_region_from_text_extracts_names_without_guessing_codes() -> None:
+    region = address_region_from_text("경기 용인시 수지구 풍덕천동 42-1")
+
+    assert region is not None
+    assert region.sido_name == "경기도"
+    assert region.sigungu_name == "용인시 수지구"
+    assert region.eup_myeon_dong_name == "풍덕천동"
+    assert region.legal_dong_code is None
+    assert region.sigungu_code is None
 
 
 def test_jibun_address_accepts_sigungu_only_region() -> None:
