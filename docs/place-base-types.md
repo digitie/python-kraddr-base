@@ -257,15 +257,15 @@ assert address.detail_address == "정부서울청사"
 
 ## provider row 정규화
 
-각 클래스에는 `from_mapping()`과 모듈 수준 helper가 있다.
+provider row를 값 객체로 바꿀 때는 각 클래스의 `from_mapping()`을 직접 쓴다.
 
 ```python
 from pykrtour import (
-    address_region_from_mapping,
-    jibun_address_from_mapping,
-    place_address_from_mapping,
-    place_coordinate_from_mapping,
-    road_name_address_from_mapping,
+    Address,
+    AddressRegion,
+    JibunAddress,
+    PlaceCoordinate,
+    RoadNameAddress,
 )
 
 row = {
@@ -276,11 +276,11 @@ row = {
     "admCd": "1111011900",
 }
 
-coord = place_coordinate_from_mapping(row)
-region = address_region_from_mapping(row)
-jibun = jibun_address_from_mapping(row)
-road = road_name_address_from_mapping(row)
-address = place_address_from_mapping(row)
+coord = PlaceCoordinate.from_mapping(row)
+region = AddressRegion.from_mapping(row)
+jibun = JibunAddress.from_mapping(row)
+road = RoadNameAddress.from_mapping(row)
+address = Address.from_mapping(row)
 ```
 
 provider별 특수 필드명은 provider 패키지에서 먼저 다듬는 것이 원칙이다. 다만 여러

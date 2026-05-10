@@ -288,6 +288,18 @@ def test_address_from_mapping_merges_provider_code_with_parsed_text() -> None:
     assert address.sigungu_code == "41465"
 
 
+def test_address_from_mapping_accepts_expressway_addr_key() -> None:
+    address = Address.from_mapping({"addr": "경기도 용인시 수지구 풍덕천동 42-1"})
+
+    assert address is not None
+    assert address.address == "경기도 용인시 수지구 풍덕천동 42-1"
+    assert address.display_address == "경기도 용인시 수지구 풍덕천동 42-1"
+    assert address.region is not None
+    assert address.region.sido_name == "경기도"
+    assert address.region.sigungu_name == "용인시 수지구"
+    assert address.region.eup_myeon_dong_name == "풍덕천동"
+
+
 def test_address_can_hold_only_region() -> None:
     address = Address(region=AddressRegion.from_sigungu_code("11110"))
 
