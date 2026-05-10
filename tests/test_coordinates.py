@@ -46,6 +46,7 @@ def test_coordinate_from_mapping_accepts_common_provider_keys() -> None:
     assert coordinate_from_mapping({"xValue": "127.104165", "yValue": "37.332651"}) == (
         Wgs84Point(127.104165, 37.332651)
     )
+    assert coordinate_from_mapping({"xValue": "-99.000000", "yValue": "-99.000000"}) is None
     assert coordinate_from_mapping({}) is None
 
 

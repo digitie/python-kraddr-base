@@ -377,13 +377,26 @@ def coerce_wgs84_point(
 def coordinate_from_mapping(row: Mapping[str, Any]) -> Wgs84Point | None:
     """일반적인 좌표 key를 가진 mapping에서 WGS84 좌표를 반환합니다."""
 
-    lon = to_float_or_none(
-        first_value(row, "lon", "lng", "longitude", "mapx", "x", "xValue", "lcLongitude", "경도")
+    lon_value = first_value(
+        row,
+        "lon",
+        "lng",
+        "longitude",
+        "mapx",
+        "x",
+        "xValue",
+        "lcLongitude",
+        "경도",
     )
-    lat = to_float_or_none(
-        first_value(row, "lat", "latitude", "mapy", "y", "yValue", "lcLatitude", "위도")
-    )
+    lat_value = first_value(row, "lat", "latitude", "mapy", "y", "yValue", "lcLatitude", "위도")
+    lon = to_float_or_none(lon_value)
+    lat = to_float_or_none(lat_value)
     if lon is None or lat is None:
+        return None
+    if _is_missing_coordinate(lon_value, kind="longitude") or _is_missing_coordinate(
+        lat_value,
+        kind="latitude",
+    ):
         return None
     return Wgs84Point(lon, lat)
 
@@ -552,6 +565,18 @@ def _validate_decimal_degrees(value: float, *, kind: CoordinateKind | None) -> f
     if kind is None and not -180 <= value <= 180:
         raise ValueError(f"coordinate out of range: {value!r}")
     return value
+
+
+def _is_missing_coordinate(value: Any, *, kind: CoordinateKind) -> bool:
+    text = strip_or_none(value)
+    if text is None:
+        return False
+    number = to_float_or_none(text)
+    if number is None:
+        return False
+    if kind == "latitude":
+        return number <= -99.0
+    return number <= -180.0
 
 
 def _extract_hemisphere(value: str) -> str | None:

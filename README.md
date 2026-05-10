@@ -15,6 +15,7 @@
 - 장소 기반 좌표, 행정구역, 지번주소, 도로명주소, 통합 주소 DTO와 SQLAlchemy 저장 helper
 - 법정동코드, 도로명코드, 도로명주소관리번호 pydantic DTO와 ORM용 평면 dict helper
 - WGS84, KATEC, AirKorea TM, KMA DFS 좌표 값 객체와 변환 helper
+- provider 좌표 key의 `-99.000000` 같은 누락 sentinel 정리
 - provider POI row에서 이름, 주소, 연락처, 좌표를 뽑는 공통 dataclass/utility
 - 한국 공항 코드/메타데이터와 근접 공항 helper
 - 주유소 POI에 필요한 표준 유종/업종 enum
@@ -57,6 +58,8 @@ assert poi.feature_type is MapFeatureType.PLACE
 assert category_label("01050100") == "관광 > 자연명소 > 해수욕장"
 
 coord = PlaceCoordinate(lon="129.1604", lat="35.1587")
+same_coord = PlaceCoordinate.from_values("35° 9' 31.32\" N", "129° 9' 37.44\" E")
+assert same_coord.distance_to_km(coord) < 0.1
 assert coord.to_sqlalchemy_values(lon_field="lon", lat_field="lat") == {
     "lon": 129.1604,
     "lat": 35.1587,

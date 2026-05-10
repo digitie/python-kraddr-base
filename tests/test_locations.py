@@ -56,6 +56,7 @@ def test_place_coordinate_mapping_and_coordinate_conversions() -> None:
     assert place_coordinate_from_mapping({"xValue": "127.104165", "yValue": "37.332651"}) == (
         PlaceCoordinate(lon=127.104165, lat=37.332651)
     )
+    assert place_coordinate_from_mapping({"xValue": "-99.000000", "yValue": "-99.000000"}) is None
     assert PlaceCoordinate.from_tuple((35.1587, 129.1604), order="lat_lon") == coord
     assert PlaceCoordinate.from_values("35° 9' 31.32\" N", "129° 9' 37.44\" E") == coord
     assert PlaceCoordinate.from_wgs84_point(Wgs84Point(129.1604, 35.1587)) == coord
