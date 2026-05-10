@@ -158,6 +158,8 @@ class PlaceCoordinate(BaseModel):
             "lon",
             "lng",
             "longitude",
+            "mapX",
+            "map_x",
             "mapx",
             "x",
             "xValue",
@@ -169,6 +171,8 @@ class PlaceCoordinate(BaseModel):
         validation_alias=AliasChoices(
             "lat",
             "latitude",
+            "mapY",
+            "map_y",
             "mapy",
             "y",
             "yValue",
@@ -284,6 +288,14 @@ class PlaceCoordinate(BaseModel):
 
     @property
     def latitude(self) -> float:
+        return self.lat
+
+    @property
+    def map_x(self) -> float:
+        return self.lon
+
+    @property
+    def map_y(self) -> float:
         return self.lat
 
     @property

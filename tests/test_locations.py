@@ -26,6 +26,8 @@ from pykrtour import (
 def test_place_coordinate_normalizes_and_serializes_for_sqlalchemy() -> None:
     coord = PlaceCoordinate(lon="126.9780", lat="37.5665", accuracy_m="3.5")
 
+    assert coord.map_x == 126.978
+    assert coord.map_y == 37.5665
     assert coord.as_lon_lat() == (126.978, 37.5665)
     assert coord.as_lat_lon() == (37.5665, 126.978)
     assert coord.to_wgs84_point() == Wgs84Point(126.978, 37.5665)
@@ -53,6 +55,12 @@ def test_place_coordinate_mapping_and_coordinate_conversions() -> None:
     coord = place_coordinate_from_mapping({"mapx": "129.1604", "mapy": "35.1587"})
 
     assert coord == PlaceCoordinate(lon=129.1604, lat=35.1587)
+    assert place_coordinate_from_mapping({"mapX": "126.9769", "mapY": "37.5796"}) == (
+        PlaceCoordinate(lon=126.9769, lat=37.5796)
+    )
+    assert PlaceCoordinate.model_validate({"map_x": "126.9769", "map_y": "37.5796"}) == (
+        PlaceCoordinate(lon=126.9769, lat=37.5796)
+    )
     assert place_coordinate_from_mapping({"xValue": "127.104165", "yValue": "37.332651"}) == (
         PlaceCoordinate(lon=127.104165, lat=37.332651)
     )

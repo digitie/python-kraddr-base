@@ -200,7 +200,7 @@ from .poi import (
     poi_from_mapping,
 )
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 __all__ = [
     "AIRKOREA_TM_CRS",

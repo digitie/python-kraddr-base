@@ -382,13 +382,26 @@ def coordinate_from_mapping(row: Mapping[str, Any]) -> Wgs84Point | None:
         "lon",
         "lng",
         "longitude",
+        "mapX",
+        "map_x",
         "mapx",
         "x",
         "xValue",
         "lcLongitude",
         "경도",
     )
-    lat_value = first_value(row, "lat", "latitude", "mapy", "y", "yValue", "lcLatitude", "위도")
+    lat_value = first_value(
+        row,
+        "lat",
+        "latitude",
+        "mapY",
+        "map_y",
+        "mapy",
+        "y",
+        "yValue",
+        "lcLatitude",
+        "위도",
+    )
     lon = to_float_or_none(lon_value)
     lat = to_float_or_none(lat_value)
     if lon is None or lat is None:
