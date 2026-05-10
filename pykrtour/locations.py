@@ -119,6 +119,7 @@ class PlaceCoordinate(BaseModel):
             "longitude",
             "mapx",
             "x",
+            "xValue",
             "lcLongitude",
             "경도",
         )
@@ -129,6 +130,7 @@ class PlaceCoordinate(BaseModel):
             "latitude",
             "mapy",
             "y",
+            "yValue",
             "lcLatitude",
             "위도",
         )

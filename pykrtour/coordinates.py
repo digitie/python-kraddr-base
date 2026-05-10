@@ -378,10 +378,10 @@ def coordinate_from_mapping(row: Mapping[str, Any]) -> Wgs84Point | None:
     """일반적인 좌표 key를 가진 mapping에서 WGS84 좌표를 반환합니다."""
 
     lon = to_float_or_none(
-        first_value(row, "lon", "lng", "longitude", "mapx", "x", "lcLongitude", "경도")
+        first_value(row, "lon", "lng", "longitude", "mapx", "x", "xValue", "lcLongitude", "경도")
     )
     lat = to_float_or_none(
-        first_value(row, "lat", "latitude", "mapy", "y", "lcLatitude", "위도")
+        first_value(row, "lat", "latitude", "mapy", "y", "yValue", "lcLatitude", "위도")
     )
     if lon is None or lat is None:
         return None

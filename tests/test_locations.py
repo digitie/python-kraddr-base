@@ -52,6 +52,9 @@ def test_place_coordinate_mapping_and_coordinate_conversions() -> None:
     coord = place_coordinate_from_mapping({"mapx": "129.1604", "mapy": "35.1587"})
 
     assert coord == PlaceCoordinate(lon=129.1604, lat=35.1587)
+    assert place_coordinate_from_mapping({"xValue": "127.104165", "yValue": "37.332651"}) == (
+        PlaceCoordinate(lon=127.104165, lat=37.332651)
+    )
     assert PlaceCoordinate.from_tuple((35.1587, 129.1604), order="lat_lon") == coord
     assert PlaceCoordinate.from_wgs84_point(Wgs84Point(129.1604, 35.1587)) == coord
     assert isinstance(coord.to_katec(), KatecPoint)
