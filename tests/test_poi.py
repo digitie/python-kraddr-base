@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pykrtour import (
+from kraddr.base import (
     AirportProvider,
     FuelStationType,
     FuelType,

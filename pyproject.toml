@@ -3,16 +3,16 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pykrtour"
+name = "python-kraddr-base"
 version = "0.1.5"
-description = "Common POI categories, coordinates, and normalization helpers for TripMate Python libraries."
+description = "Common Korean address, location, POI, and coordinate base types."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "GPL-3.0-or-later"}
 authors = [
   {name = "digitie"}
 ]
-keywords = ["tripmate", "poi", "korea", "tourism", "geospatial"]
+keywords = ["kraddr", "address", "poi", "korea", "geospatial"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -39,10 +39,11 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["pykrtour*"]
+where = ["src"]
+include = ["kraddr*"]
 
 [tool.setuptools.package-data]
-pykrtour = ["py.typed"]
+"kraddr.base" = ["py.typed"]
 
 [tool.ruff]
 line-length = 100
@@ -59,3 +60,4 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+pythonpath = ["src"]

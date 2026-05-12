@@ -4,7 +4,7 @@ from io import StringIO
 
 import pytest
 
-from pykrtour import (
+from kraddr.base import (
     TRIPMATE_CATEGORY_BY_CODE,
     TRIPMATE_CATEGORY_CODES,
     TRIPMATE_CATEGORY_DEFINITIONS,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from pykrtour import (
+from kraddr.base import (
     MAP_FEATURE_TYPE_VALUES,
     TRIP_RESOURCE_TYPE_VALUES,
     MapFeatureType,

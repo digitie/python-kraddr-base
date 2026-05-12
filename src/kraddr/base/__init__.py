@@ -1,4 +1,4 @@
-"""TripMate 하위 라이브러리에서 공유하는 POI 공통 타입과 helper."""
+"""TripMate 하위 라이브러리에서 공유하는 주소/장소 공통 타입과 helper."""
 
 from .addresses import (
     BUILDING_MANAGEMENT_NUMBER_KEYS,

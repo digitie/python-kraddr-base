@@ -1,6 +1,7 @@
-# pykrtour
+# python-kraddr-base
 
-`pykrtour`는 TripMate 하위 Python 라이브러리에서 함께 쓰는 POI 공통 코드입니다.
+`kraddr.base`는 TripMate 하위 Python 라이브러리에서 함께 쓰는 POI 공통 코드입니다.
+배포 패키지 이름은 `python-kraddr-base`이고, import 경로는 `kraddr.base`입니다.
 
 이 패키지는 API 클라이언트가 아니라, `pymcst`, `pykrforest`, `pymois`, `pyairkorea`,
 `pykrairport`, `kex-openapi`, `pykma`, `opinet`, `pykhoa`, `pykrtourapi`,
@@ -20,12 +21,12 @@
 - 한국 공항 코드/메타데이터와 근접 공항 helper
 - 주유소 POI에 필요한 표준 유종/업종 enum
 
-좌표계 변환 중 `pyproj`가 필요한 기능은 `pykrtour[geo]` extra로 분리했습니다.
+좌표계 변환 중 `pyproj`가 필요한 기능은 `python-kraddr-base[geo]` extra로 분리했습니다.
 
 ## 예시
 
 ```python
-from pykrtour import (
+from kraddr.base import (
     Address,
     AddressRegion,
     LegalDongCode,
@@ -105,7 +106,7 @@ TripMate 지도 데이터는 category와 별개로 최상위 도메인 타입을
 
 ## 장소 기반 타입
 
-모든 하위 라이브러리가 공통으로 쓸 장소 위치 값 객체는 `pykrtour.locations`에 둡니다.
+모든 하위 라이브러리가 공통으로 쓸 장소 위치 값 객체는 `kraddr.base.locations`에 둡니다.
 
 - `PlaceCoordinate`: WGS84 기준 좌표. 좌표 변환, WKT/EWKT/GeoJSON, ORM 저장 dict 제공
 - `AddressRegion`: 시군구까지만 있는 지역 row와 법정동 하위 코드 row를 함께 표현
@@ -126,4 +127,4 @@ TripMate 지도 데이터는 category와 별개로 최상위 도메인 타입을
   DTO 역할이 필요한 장소 위치/주소 계열은 pydantic 모델로 둡니다.
 - 네트워크 호출, 인증키 처리, endpoint별 응답 파싱은 이 패키지 범위가 아닙니다.
 - 기존 하위 라이브러리에서 확정된 공통 개념은 이 패키지로 옮기고, 하위 라이브러리는
-  `pykrtour`에 의존하도록 조정합니다.
+  `kraddr.base`에 의존하도록 조정합니다.

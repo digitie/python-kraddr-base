@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from pykrtour import (
+from kraddr.base import (
     CoordinateReferenceSystem,
     KmaGridPoint,
     LatLon,

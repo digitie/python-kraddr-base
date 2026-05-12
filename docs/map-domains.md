@@ -1,6 +1,6 @@
 # TripMate 지도 도메인 타입
 
-이 문서는 `pykrtour.domains`의 기준 문서다. TripMate 지도 데이터는 8자리
+이 문서는 `kraddr.base.domains`의 기준 문서다. TripMate 지도 데이터는 8자리
 category와 별개로, 지도/일정/검색에서 쓰는 최상위 도메인 타입을 가진다.
 
 ## 참고한 TripMate 문서
@@ -19,7 +19,7 @@ category와 별개로, 지도/일정/검색에서 쓰는 최상위 도메인 타
 - 기존 구현 문서와 모델의 `feature_type`은 `place`, `event`, `route`, `area`,
   `notice`를 허용한다.
 - 날씨/대기질 문서는 별도 raw/serving table과 `map_feature_id` 연결을 사용한다.
-- 2026-05-10부터 `pykrtour`의 공통 도메인 기준에는 사용자 결정에 따라 `weather`를
+- 2026-05-10부터 `kraddr.base`의 공통 도메인 기준에는 사용자 결정에 따라 `weather`를
   추가한다. TripMate 백엔드가 이 값을 사용하려면 `map_features.feature_type`,
   `feature_mapping_candidates.candidate_feature_type`, `trip_plan_items.resource_type`
   제약과 detail table migration도 함께 확장해야 한다.
@@ -62,7 +62,7 @@ category와 별개로, 지도/일정/검색에서 쓰는 최상위 도메인 타
 
 ## 최초 detail kind 값
 
-`pykrtour.domains`는 현재 다음 값을 공통 기준으로 둔다.
+`kraddr.base.domains`는 현재 다음 값을 공통 기준으로 둔다.
 
 | 컬럼 | 허용값 |
 | --- | --- |
@@ -87,15 +87,15 @@ TripMate 백엔드가 공유해야 하는 축약 기준만 담는다.
 `primary_source_record_id`, `extra`를 둔다. 공통 컬럼으로 승격하지 않은 provider별 값은
 detail table의 `extra`나 원천 `raw_payload`에 보존한다.
 
-점 위치는 `pykrtour.locations.PlaceCoordinate`를 기준 DTO로 사용한다. 이 DTO는 WGS84
+점 위치는 `kraddr.base.locations.PlaceCoordinate`를 기준 DTO로 사용한다. 이 DTO는 WGS84
 `longitude`, `latitude` 숫자 컬럼과 PostGIS용 WKT/EWKT 값을 만들 수 있지만, 지오코딩과
 리버스 지오코딩은 수행하지 않는다.
 
 주소 snapshot과 함께 코드 기반 연계가 가능한 경우 `legal_dong_code`, `road_name_code`,
 `road_name_address_code`, `building_management_number`를 보존한다. 법정동코드는
-`pykrtour.addresses.LegalDongCode`, 도로명코드는 `RoadNameCode`, 도로명주소관리번호는
+`kraddr.base.addresses.LegalDongCode`, 도로명코드는 `RoadNameCode`, 도로명주소관리번호는
 `RoadNameAddressCode`로 검증한 뒤 ORM DTO용 평면 dict로 넘길 수 있다.
-시군구코드까지만 있는 원천 row는 `pykrtour.locations.AddressRegion`으로 보존하고,
+시군구코드까지만 있는 원천 row는 `kraddr.base.locations.AddressRegion`으로 보존하고,
 지번/도로명 상세가 있을 때만 `JibunAddress`, `RoadNameAddress`, `Address`에 결합한다.
 건물명이나 상세주소처럼 주소 본문과 분리해야 하는 값은 `Address.detail_address`에 보존한다.
 
