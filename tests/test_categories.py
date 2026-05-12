@@ -40,6 +40,7 @@ def test_place_category_lookup_and_label() -> None:
     assert category.path == ("관광", "자연명소", "해수욕장")
     assert category_label("01050100") == "관광 > 자연명소 > 해수욕장"
     assert category_path("01010101") == ("관광", "테마파크", "놀이공원", "대형 테마파크")
+    assert category_path("01010302") == ("관광", "테마파크", "동물원·수족관", "수족관")
     assert category_path("01070400") == ("관광", "국가유산", "한옥·민속마을")
     assert category_path("01080500") == ("관광", "액티비티", "트레킹·둘레길")
     assert category_path("02020101") == ("식음", "카페", "커피전문점", "프랜차이즈 카페")
