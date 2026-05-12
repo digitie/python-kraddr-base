@@ -1,0 +1,119 @@
+# Category Mapbox Maki icon 매핑
+
+이 문서는 `kraddr.base.categories`의 TripMate category code를 지도 marker에 사용할
+Mapbox Maki icon 이름으로 매핑한 기준이다.
+
+Maki icon 이름은 Mapbox Maki 저장소의 `icons/*.svg` 파일명에서 `.svg`를 뺀 값이다.
+예를 들어 `beach`는 `beach.svg`를 의미한다.
+
+## 매핑 원칙
+
+- 더 구체적인 Maki icon이 있으면 leaf category에 우선 적용한다.
+- 같은 시각 기호가 자연스러운 하위 category는 부모 category와 같은 icon을 쓴다.
+- Maki에 직접 대응 icon이 없는 경우 가장 가까운 공통 POI icon을 쓴다.
+  예를 들어 휴양림은 `forest` icon이 없으므로 `park`, 카라반/글램핑은 전용 icon이
+  없으므로 `campsite`를 쓴다.
+- 미분류는 지도에서 의미를 추정하지 않도록 일반 `marker`를 쓴다.
+
+## 코드 매핑
+
+| category code | category label | Maki icon |
+| --- | --- | --- |
+| `00000000` | 미분류 | `marker` |
+| `01000000` | 관광 | `attraction` |
+| `01010000` | 관광 > 테마파크 | `amusement-park` |
+| `01010100` | 관광 > 테마파크 > 놀이공원 | `amusement-park` |
+| `01010101` | 관광 > 테마파크 > 놀이공원 > 대형 테마파크 | `amusement-park` |
+| `01010102` | 관광 > 테마파크 > 놀이공원 > 중소형 놀이공원 | `amusement-park` |
+| `01010200` | 관광 > 테마파크 > 워터파크 | `swimming` |
+| `01010300` | 관광 > 테마파크 > 동물원·아쿠아리움 | `zoo` |
+| `01010400` | 관광 > 테마파크 > 체험형 테마파크 | `attraction` |
+| `01020000` | 관광 > 자연경관 | `natural` |
+| `01020100` | 관광 > 자연경관 > 산·계곡 | `mountain` |
+| `01020101` | 관광 > 자연경관 > 산·계곡 > 국립공원 | `park` |
+| `01030000` | 관광 > 수목원·식물원 | `garden` |
+| `01030100` | 관광 > 수목원·식물원 > 수목원 | `garden` |
+| `01030101` | 관광 > 수목원·식물원 > 수목원 > 국립수목원 | `garden` |
+| `01030102` | 관광 > 수목원·식물원 > 수목원 > 공립수목원 | `garden` |
+| `01030103` | 관광 > 수목원·식물원 > 수목원 > 사립수목원 | `garden` |
+| `01050000` | 관광 > 자연명소 | `natural` |
+| `01050100` | 관광 > 자연명소 > 해수욕장 | `beach` |
+| `01060000` | 관광 > 관광안내 | `information` |
+| `01060100` | 관광 > 관광안내 > 관광안내소 | `information` |
+| `01060101` | 관광 > 관광안내 > 관광안내소 > 공공 관광안내소 | `information` |
+| `01040000` | 관광 > 문화시설 | `museum` |
+| `01040100` | 관광 > 문화시설 > 박물관 | `museum` |
+| `01040101` | 관광 > 문화시설 > 박물관 > 국공립 박물관 | `museum` |
+| `01040102` | 관광 > 문화시설 > 박물관 > 사립 박물관 | `museum` |
+| `01040103` | 관광 > 문화시설 > 박물관 > 테마 박물관 | `museum` |
+| `01040200` | 관광 > 문화시설 > 미술관·갤러리 | `art-gallery` |
+| `01040201` | 관광 > 문화시설 > 미술관·갤러리 > 미술관 | `art-gallery` |
+| `01040202` | 관광 > 문화시설 > 미술관·갤러리 > 갤러리 | `art-gallery` |
+| `02000000` | 식음 | `restaurant` |
+| `02010000` | 식음 > 음식점 | `restaurant` |
+| `02010100` | 식음 > 음식점 > 한식 | `restaurant` |
+| `02010200` | 식음 > 음식점 > 양식 | `restaurant` |
+| `02010300` | 식음 > 음식점 > 일식 | `restaurant-sushi` |
+| `02010400` | 식음 > 음식점 > 중식 | `restaurant` |
+| `02010500` | 식음 > 음식점 > 아시안 | `restaurant` |
+| `02010600` | 식음 > 음식점 > 패스트푸드 | `fast-food` |
+| `02010700` | 식음 > 음식점 > 뷔페 | `restaurant` |
+| `02010800` | 식음 > 음식점 > 주점 | `bar` |
+| `02020000` | 식음 > 카페 | `cafe` |
+| `02020100` | 식음 > 카페 > 커피전문점 | `cafe` |
+| `02020101` | 식음 > 카페 > 커피전문점 > 프랜차이즈 카페 | `cafe` |
+| `03000000` | 숙박 | `lodging` |
+| `03010000` | 숙박 > 호텔 | `lodging` |
+| `03020000` | 숙박 > 리조트 | `lodging` |
+| `03030000` | 숙박 > 휴양림 | `park` |
+| `03030100` | 숙박 > 휴양림 > 국립휴양림 | `park` |
+| `03030101` | 숙박 > 휴양림 > 국립휴양림 > 산림청 운영 | `park` |
+| `03030200` | 숙박 > 휴양림 > 공립휴양림 | `park` |
+| `03030201` | 숙박 > 휴양림 > 공립휴양림 > 지자체 운영 | `park` |
+| `03030300` | 숙박 > 휴양림 > 사립휴양림 | `park` |
+| `03030301` | 숙박 > 휴양림 > 사립휴양림 > 민간 운영 | `park` |
+| `03040000` | 숙박 > 모텔 | `lodging` |
+| `03050000` | 숙박 > 펜션 | `home` |
+| `03060000` | 숙박 > 캠핑장 | `campsite` |
+| `03060100` | 숙박 > 캠핑장 > 오토캠핑장 | `campsite` |
+| `03060101` | 숙박 > 캠핑장 > 오토캠핑장 > 일반 사이트 | `campsite` |
+| `03060102` | 숙박 > 캠핑장 > 오토캠핑장 > 카라반·캠핑카 사이트 | `campsite` |
+| `03060200` | 숙박 > 캠핑장 > 글램핑·카라반 | `campsite` |
+| `03060201` | 숙박 > 캠핑장 > 글램핑·카라반 > 글램핑 | `campsite` |
+| `03060202` | 숙박 > 캠핑장 > 글램핑·카라반 > 카라반 대여 | `campsite` |
+| `03070000` | 숙박 > 게스트하우스 | `lodging` |
+| `04000000` | 온천·스파 | `hot-spring` |
+| `04010000` | 온천·스파 > 온천 | `hot-spring` |
+| `04020000` | 온천·스파 > 찜질방·사우나 | `hot-spring` |
+| `04030000` | 온천·스파 > 스파·테라피 | `hot-spring` |
+| `05000000` | 편의 | `convenience` |
+| `05010000` | 편의 > 편의점 | `convenience` |
+| `05020000` | 편의 > 은행 | `bank` |
+| `05030000` | 편의 > 마트 | `grocery` |
+| `05040000` | 편의 > 슈퍼마켓 | `shop` |
+| `06000000` | 교통 | `car` |
+| `06010000` | 교통 > 주차장 | `parking` |
+| `06020000` | 교통 > 주유소 | `fuel` |
+| `06030000` | 교통 > 정류장 | `bus` |
+| `06040000` | 교통 > 휴게소 | `highway-rest-area` |
+| `06040100` | 교통 > 휴게소 > 고속도로휴게소 | `highway-rest-area` |
+| `06040101` | 교통 > 휴게소 > 고속도로휴게소 > 한국도로공사 휴게소 | `highway-rest-area` |
+| `07000000` | 의료 | `hospital` |
+| `07010000` | 의료 > 병원 | `hospital` |
+| `07020000` | 의료 > 약국 | `pharmacy` |
+
+## 코드 API
+
+```python
+from kraddr.base import (
+    PLACE_CATEGORY_MAPBOX_MAKI_ICONS,
+    PlaceCategoryCode,
+    get_category,
+    mapbox_maki_icon_for_category,
+)
+
+assert mapbox_maki_icon_for_category("01050100") == "beach"
+assert mapbox_maki_icon_for_category(PlaceCategoryCode.LODGING_CAMPGROUND) == "campsite"
+assert get_category("01040202").mapbox_maki_icon == "art-gallery"
+assert PLACE_CATEGORY_MAPBOX_MAKI_ICONS["01060100"] == "information"
+```

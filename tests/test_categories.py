@@ -5,38 +5,52 @@ from io import StringIO
 import pytest
 
 from kraddr.base import (
-    TRIPMATE_CATEGORY_BY_CODE,
-    TRIPMATE_CATEGORY_CODES,
-    TRIPMATE_CATEGORY_DEFINITIONS,
-    TripMateCategoryCode,
+    MAPBOX_MAKI_ICON_SOURCE,
+    PLACE_CATEGORY_BY_CODE,
+    PLACE_CATEGORY_CODES,
+    PLACE_CATEGORY_DEFINITIONS,
+    PLACE_CATEGORY_MAPBOX_MAKI_ICON_VALUES,
+    PLACE_CATEGORY_MAPBOX_MAKI_ICONS,
+    PlaceCategoryCode,
     category_label,
     category_path,
     format_category_tree,
     get_category,
     is_known_category_code,
     iter_categories,
+    mapbox_maki_icon_for_category,
+    mapbox_maki_icon_or_none,
     print_category_tree,
 )
 
 
-def test_tripmate_category_seed_matches_current_tripmate_count() -> None:
-    assert len(TRIPMATE_CATEGORY_DEFINITIONS) == 35
-    assert len(TRIPMATE_CATEGORY_BY_CODE) == 35
-    assert TRIPMATE_CATEGORY_CODES[0] == "00000000"
+def test_place_category_seed_covers_expanded_taxonomy() -> None:
+    assert len(PLACE_CATEGORY_DEFINITIONS) == 82
+    assert len(PLACE_CATEGORY_BY_CODE) == 82
+    assert PLACE_CATEGORY_CODES[0] == "00000000"
 
 
-def test_tripmate_category_lookup_and_label() -> None:
-    category = get_category(TripMateCategoryCode.TOURISM_NATURE_BEACH)
+def test_place_category_lookup_and_label() -> None:
+    category = get_category(PlaceCategoryCode.TOURISM_NATURE_BEACH)
 
     assert category.code == "01050100"
     assert category.depth == 3
     assert category.parent_code == "01050000"
     assert category.path == ("관광", "자연명소", "해수욕장")
     assert category_label("01050100") == "관광 > 자연명소 > 해수욕장"
+    assert category_path("01010101") == ("관광", "테마파크", "놀이공원", "대형 테마파크")
+    assert category_path("02020101") == ("식음", "카페", "커피전문점", "프랜차이즈 카페")
     assert category_path("03060202") == ("숙박", "캠핑장", "글램핑·카라반", "카라반 대여")
+    assert category_path("06040101") == (
+        "교통",
+        "휴게소",
+        "고속도로휴게소",
+        "한국도로공사 휴게소",
+    )
+    assert category.mapbox_maki_icon == "beach"
 
 
-def test_tripmate_category_helpers_validate_codes() -> None:
+def test_place_category_helpers_validate_codes() -> None:
     assert is_known_category_code("03060101")
     assert not is_known_category_code("99999999")
 
@@ -44,11 +58,69 @@ def test_tripmate_category_helpers_validate_codes() -> None:
         get_category("99999999")
 
 
+def test_place_categories_have_mapbox_maki_icons() -> None:
+    assert MAPBOX_MAKI_ICON_SOURCE == "https://github.com/mapbox/maki/tree/main/icons"
+    assert set(PLACE_CATEGORY_MAPBOX_MAKI_ICONS) == set(PLACE_CATEGORY_CODES)
+    assert PLACE_CATEGORY_MAPBOX_MAKI_ICON_VALUES == (
+        "amusement-park",
+        "art-gallery",
+        "attraction",
+        "bank",
+        "bar",
+        "beach",
+        "bus",
+        "cafe",
+        "campsite",
+        "car",
+        "convenience",
+        "fast-food",
+        "fuel",
+        "garden",
+        "grocery",
+        "highway-rest-area",
+        "home",
+        "hospital",
+        "hot-spring",
+        "information",
+        "lodging",
+        "marker",
+        "mountain",
+        "museum",
+        "natural",
+        "park",
+        "parking",
+        "pharmacy",
+        "restaurant",
+        "restaurant-sushi",
+        "shop",
+        "swimming",
+        "zoo",
+    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.TOURISM_INFORMATION_CENTER) == (
+        "information"
+    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.FOOD_CAFE_COFFEE_FRANCHISE) == (
+        "cafe"
+    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.TRANSPORT_REST_AREA_HIGHWAY_EX) == (
+        "highway-rest-area"
+    )
+    assert mapbox_maki_icon_for_category("01040202") == "art-gallery"
+    assert mapbox_maki_icon_for_category("03060202") == "campsite"
+    assert mapbox_maki_icon_or_none("99999999") is None
+
+    with pytest.raises(KeyError):
+        mapbox_maki_icon_for_category("99999999")
+
+
 def test_iter_categories_filters_depth() -> None:
     leaf_codes = {category.code for category in iter_categories(depth=4)}
 
+    assert "01010101" in leaf_codes
     assert "01030101" in leaf_codes
+    assert "02020101" in leaf_codes
     assert "03060202" in leaf_codes
+    assert "06040101" in leaf_codes
     assert "01050100" not in leaf_codes
 
 
@@ -60,12 +132,12 @@ def test_format_category_tree_prints_full_hierarchy() -> None:
     assert "├── 수목원·식물원 [01030000]" in tree
     assert "│   └── 수목원 [01030100]" in tree
     assert "숙박 [03000000]" in tree
-    assert "└── 캠핑장 [03060000]" in tree
+    assert "├── 캠핑장 [03060000]" in tree
 
 
 def test_format_category_tree_can_render_subtree_without_codes() -> None:
     tree = format_category_tree(
-        root_code=TripMateCategoryCode.LODGING_CAMPGROUND,
+        root_code=PlaceCategoryCode.LODGING_CAMPGROUND,
         include_codes=False,
     )
 

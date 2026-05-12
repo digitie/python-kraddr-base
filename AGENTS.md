@@ -39,6 +39,7 @@ TripMate 하위 Python 라이브러리들이 공통으로 쓰는 POI 값 객체,
 - `src/kraddr/base/_convert.py`: 빈값/숫자/bool/raw payload 정규화 helper.
 - `src/kraddr/base/_enum.py`: Python 3.10 호환 문자열 enum 기반 클래스.
 - `tests/`: 네트워크 없는 단위 테스트.
+- `docs/category-icons.md`: TripMate category와 Mapbox Maki icon 매핑 기준 문서.
 - `docs/map-domains.md`: category와 별개로 쓰는 지도 도메인 기준 문서.
 - `docs/place-base-types.md`: 모든 하위 라이브러리가 공유하는 장소 위치 DTO 기준 문서.
 
@@ -72,7 +73,7 @@ TripMate 하위 Python 라이브러리들이 공통으로 쓰는 POI 값 객체,
   `python-kraddr-base`에 의존합니다. 별도 호환 wrapper를 새로 만들지 않습니다.
 - `pymois`, `pyairkorea`, `opinet`, `pykma`, `kex-openapi`, `pykrairport`의 좌표 값 객체는
   새 코드부터 `kraddr.base.coordinates`를 우선 사용합니다.
-- `pymcst`, `pykrforest`, `pykhoa`, `pykrtourapi`처럼 provider별 POI row를 갖는 패키지는
+- `pymcst`, `pykrforest`, `pykhoa`, `visitkorea`처럼 provider별 POI row를 갖는 패키지는
   `kraddr.base.poi.PoiRecord` 또는 더 작은 `PoiAddress`, `PoiContact`, `ProviderPoiRef`를
   경계 모델로 사용합니다.
 - provider row가 TripMate 지도 객체 후보라면 `kraddr.base.domains.MapFeatureType`을

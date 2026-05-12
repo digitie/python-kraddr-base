@@ -4,13 +4,14 @@
 배포 패키지 이름은 `python-kraddr-base`이고, import 경로는 `kraddr.base`입니다.
 
 이 패키지는 API 클라이언트가 아니라, `pymcst`, `pykrforest`, `pymois`, `pyairkorea`,
-`pykrairport`, `kex-openapi`, `pykma`, `opinet`, `pykhoa`, `pykrtourapi`,
+`pykrairport`, `kex-openapi`, `pykma`, `opinet`, `pykhoa`, `visitkorea`,
 `pyvworld`, `pykrtourpoi`가 장소/축제/트래킹코스/관측소/공항/휴게소/주유소 데이터를
 같은 모양으로 다룰 때 쓰는 작은 타입 계층입니다.
 
 ## 포함 범위
 
 - TripMate 8자리 POI 카테고리 코드와 tree helper
+- TripMate POI 카테고리별 Mapbox Maki icon 매핑 helper
 - TripMate 지도 도메인 타입(`place`, `event`, `route`, `area`, `notice`, `weather`)과
   detail schema hint
 - 장소 기반 좌표, 자유 주소 문자열, 행정구역, 지번주소, 도로명주소, 통합 주소 DTO와 SQLAlchemy 저장 helper
@@ -103,6 +104,14 @@ TripMate 지도 데이터는 category와 별개로 최상위 도메인 타입을
 - `weather`: 날씨, 해수욕장 예보, 기상특보, 대기질 같은 환경 정보
 
 자세한 기준은 `docs/map-domains.md`에 정리했습니다.
+
+## Category icon
+
+TripMate category code는 Mapbox 기반 지도 marker에서 바로 쓸 수 있도록 Maki icon에
+매핑됩니다. 예를 들어 해수욕장(`01050100`)은 `beach`, 관광안내소(`01060100`)는
+`information`, 캠핑장(`03060000`)은 `campsite`를 씁니다.
+
+전체 표와 매핑 기준은 `docs/category-icons.md`에 정리했습니다.
 
 ## 장소 기반 타입
 
