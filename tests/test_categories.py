@@ -11,6 +11,7 @@ from kraddr.base import (
     PLACE_CATEGORY_DEFINITIONS,
     PLACE_CATEGORY_MAPBOX_MAKI_ICON_VALUES,
     PLACE_CATEGORY_MAPBOX_MAKI_ICONS,
+    PLACE_CATEGORY_TIER2_NAMES_BY_TIER1,
     PlaceCategoryCode,
     category_label,
     category_path,
@@ -25,8 +26,8 @@ from kraddr.base import (
 
 
 def test_place_category_seed_covers_expanded_taxonomy() -> None:
-    assert len(PLACE_CATEGORY_DEFINITIONS) == 82
-    assert len(PLACE_CATEGORY_BY_CODE) == 82
+    assert len(PLACE_CATEGORY_DEFINITIONS) == 141
+    assert len(PLACE_CATEGORY_BY_CODE) == 141
     assert PLACE_CATEGORY_CODES[0] == "00000000"
 
 
@@ -39,8 +40,12 @@ def test_place_category_lookup_and_label() -> None:
     assert category.path == ("관광", "자연명소", "해수욕장")
     assert category_label("01050100") == "관광 > 자연명소 > 해수욕장"
     assert category_path("01010101") == ("관광", "테마파크", "놀이공원", "대형 테마파크")
+    assert category_path("01070400") == ("관광", "국가유산", "한옥·민속마을")
+    assert category_path("01080500") == ("관광", "액티비티", "트레킹·둘레길")
     assert category_path("02020101") == ("식음", "카페", "커피전문점", "프랜차이즈 카페")
+    assert category_path("05050000") == ("편의", "백화점")
     assert category_path("03060202") == ("숙박", "캠핑장", "글램핑·카라반", "카라반 대여")
+    assert category_path("07010200") == ("의료", "병원", "의원")
     assert category_path("06040101") == (
         "교통",
         "휴게소",
@@ -62,9 +67,12 @@ def test_place_categories_have_mapbox_maki_icons() -> None:
     assert MAPBOX_MAKI_ICON_SOURCE == "https://github.com/mapbox/maki/tree/main/icons"
     assert set(PLACE_CATEGORY_MAPBOX_MAKI_ICONS) == set(PLACE_CATEGORY_CODES)
     assert PLACE_CATEGORY_MAPBOX_MAKI_ICON_VALUES == (
+        "airport",
         "amusement-park",
+        "aquarium",
         "art-gallery",
         "attraction",
+        "bakery",
         "bank",
         "bar",
         "beach",
@@ -72,38 +80,62 @@ def test_place_categories_have_mapbox_maki_icons() -> None:
         "cafe",
         "campsite",
         "car",
+        "castle",
+        "cinema",
+        "clothing-store",
         "convenience",
+        "dentist",
+        "doctor",
         "fast-food",
+        "ferry",
         "fuel",
         "garden",
+        "golf",
         "grocery",
         "highway-rest-area",
         "home",
         "hospital",
         "hot-spring",
         "information",
+        "library",
         "lodging",
         "marker",
+        "monument",
         "mountain",
         "museum",
         "natural",
         "park",
         "parking",
         "pharmacy",
+        "pitch",
+        "rail",
+        "rail-metro",
+        "religious-buddhist",
         "restaurant",
         "restaurant-sushi",
         "shop",
         "swimming",
+        "taxi",
+        "theatre",
+        "toilet",
+        "town-hall",
+        "viewpoint",
+        "village",
+        "water",
         "zoo",
     )
     assert mapbox_maki_icon_for_category(PlaceCategoryCode.TOURISM_INFORMATION_CENTER) == (
         "information"
     )
-    assert mapbox_maki_icon_for_category(PlaceCategoryCode.FOOD_CAFE_COFFEE_FRANCHISE) == (
-        "cafe"
-    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.FOOD_CAFE_COFFEE_FRANCHISE) == ("cafe")
     assert mapbox_maki_icon_for_category(PlaceCategoryCode.TRANSPORT_REST_AREA_HIGHWAY_EX) == (
         "highway-rest-area"
+    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.CONVENIENCE_DEPARTMENT_STORE) == (
+        "clothing-store"
+    )
+    assert mapbox_maki_icon_for_category(PlaceCategoryCode.TOURISM_HERITAGE_TEMPLE) == (
+        "religious-buddhist"
     )
     assert mapbox_maki_icon_for_category("01040202") == "art-gallery"
     assert mapbox_maki_icon_for_category("03060202") == "campsite"
@@ -121,7 +153,49 @@ def test_iter_categories_filters_depth() -> None:
     assert "02020101" in leaf_codes
     assert "03060202" in leaf_codes
     assert "06040101" in leaf_codes
+    assert "07020100" not in leaf_codes
     assert "01050100" not in leaf_codes
+
+
+def test_place_category_code_segments_match_paths_and_parents() -> None:
+    for category in PLACE_CATEGORY_DEFINITIONS:
+        segments = (
+            category.code[0:2],
+            category.code[2:4],
+            category.code[4:6],
+            category.code[6:8],
+        )
+        expected_depth = (
+            0 if category.code == "00000000" else sum(segment != "00" for segment in segments)
+        )
+
+        assert category.depth == expected_depth
+        assert category.path == tuple(
+            name
+            for name in (
+                category.tier1_name,
+                category.tier2_name,
+                category.tier3_name,
+                category.tier4_name,
+            )
+            if name
+        )
+
+        if category.depth <= 1:
+            assert category.parent_code is None
+            continue
+
+        assert category.parent_code is not None
+        assert PLACE_CATEGORY_BY_CODE[category.parent_code].path == category.path[:-1]
+
+
+def test_place_category_tier2_table_matches_definitions() -> None:
+    for tier1_code, tier2_names in PLACE_CATEGORY_TIER2_NAMES_BY_TIER1.items():
+        for tier2_code, tier2_name in tier2_names.items():
+            category = get_category(f"{tier1_code}{tier2_code}0000")
+
+            assert category.depth == 2
+            assert category.tier2_name == tier2_name
 
 
 def test_format_category_tree_prints_full_hierarchy() -> None:
@@ -130,7 +204,7 @@ def test_format_category_tree_prints_full_hierarchy() -> None:
     assert "미분류 [00000000]" in tree
     assert "관광 [01000000]" in tree
     assert "├── 수목원·식물원 [01030000]" in tree
-    assert "│   └── 수목원 [01030100]" in tree
+    assert "│   ├── 수목원 [01030100]" in tree
     assert "숙박 [03000000]" in tree
     assert "├── 캠핑장 [03060000]" in tree
 
@@ -154,4 +228,5 @@ def test_print_category_tree_writes_to_stream() -> None:
 
     output = stream.getvalue()
     assert output.splitlines()[0] == "자연명소 [01050000]"
-    assert "└── 해수욕장 [01050100]" in output
+    assert "├── 해수욕장 [01050100]" in output
+    assert "└── 전망대 [01050300]" in output
