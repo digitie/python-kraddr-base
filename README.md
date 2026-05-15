@@ -60,7 +60,7 @@ assert poi.feature_type is MapFeatureType.PLACE
 assert category_label("01050100") == "관광 > 자연명소 > 해수욕장"
 
 coord = PlaceCoordinate(lon="129.1604", lat="35.1587")
-same_coord = PlaceCoordinate.from_values("35° 9' 31.32\" N", "129° 9' 37.44\" E")
+same_coord = PlaceCoordinate.from_values("129° 9' 37.44\" E", "35° 9' 31.32\" N")
 assert same_coord.distance_to_km(coord) < 0.1
 assert coord.to_sqlalchemy_values(lon_field="lon", lat_field="lat") == {
     "lon": 129.1604,

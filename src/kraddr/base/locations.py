@@ -224,8 +224,8 @@ class PlaceCoordinate(BaseModel):
         )
 
     @classmethod
-    def from_values(cls, latitude: Any, longitude: Any) -> PlaceCoordinate:
-        """decimal 또는 DMS 유사 위경도 값으로 기준 좌표 DTO를 만듭니다."""
+    def from_values(cls, longitude: Any, latitude: Any) -> PlaceCoordinate:
+        """decimal 또는 DMS 유사 경도/위도 값으로 기준 좌표 DTO를 만듭니다."""
 
         return cls(
             lon=round(to_decimal_degrees(longitude, kind="longitude"), 12),
